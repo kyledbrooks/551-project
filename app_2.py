@@ -57,7 +57,7 @@ with row1_1:
     Examining risk level of street roads in Los Angeles. 
     """
     )
-    hour_selected = st.slider("Select hour of day", 0, 23)
+    hour_selected = st.slider("Select hour of day", 0, 23, 4)
     day_selected = st.selectbox("Pick a day of the week", ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday',
                                                            'Saturday', 'Sunday'])
     user_input = st.text_input("Enter street address here", 'Figueroa ST')
