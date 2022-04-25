@@ -5,7 +5,6 @@ altair
 pydeck
 folium
 geopy
-ast
 warnings
 streamlit_folium
 sklearn
