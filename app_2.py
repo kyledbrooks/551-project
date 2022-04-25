@@ -110,8 +110,8 @@ class project_data:
         self.day = day_selected
         self.hour = hour_selected
     def get_dataframe(self): 
-        df_traffic = pd.read_csv(r'../data/dataProcessing_files/data_final.csv')       
-        df_crash = pd.read_csv(r'../data/dataProcessing_files/kmeans_k=25.csv')
+        df_traffic = pd.read_csv(r'data/dataProcessing_files/data_final.csv')       
+        df_crash = pd.read_csv(r'data/dataProcessing_files/kmeans_k=25.csv')
         return df_traffic, df_crash
         # function will get data for user input for appearing in pop-up text
     def get_risk(self, x):
@@ -137,7 +137,7 @@ class project_data:
     # Get API
     def get_api(self):
         geocode_api = st.secrets["geocode_api_key"]
-        
+
         # geocode_api = ''
         # with open(r'../data/geocode_api_keys.txt', 'r') as f:
         #     geocode_api += str(f.read())
