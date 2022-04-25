@@ -14,9 +14,8 @@ import geopy
 import ast
 import warnings
 from streamlit_folium import folium_static
-from sklearn import preprocessing
+from sklearn import preprocessing 
 import pickle 
-from io import StringIO
 from sklearn.preprocessing import StandardScaler
 warnings.filterwarnings('ignore')
 
@@ -31,10 +30,11 @@ import boto3
 import pandas as pd
 import sys
 from opencage.geocoder import OpenCageGeocode
+from sklearn.metrics.pairwise import haversine_distances
+from math import radians
 
 
 # In[5]:
-
 
 st.set_page_config(layout="wide")
 
@@ -42,14 +42,15 @@ st.set_page_config(layout="wide")
 # In[6]:
 
 
-row1_1, row1_2 = st.columns((1, 1))
-
-
-# In[7]:
-
+row1_1, row1_4 = st.columns(2)
 
 with row1_1:
+
     st.title("SafePath Los Angeles")
+    
+row1_2, row1_3 = st.columns((1, 0.75))
+
+with row1_2:
     st.write(
         """
     ##
@@ -59,22 +60,7 @@ with row1_1:
     hour_selected = st.slider("Select hour of day", 0, 23, 4)
     day_selected = st.selectbox("Pick a day of the week", ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday',
                                                            'Saturday', 'Sunday'])
-    user_input = st.text_input("Enter street address here", 'Figueroa ST')
-
-
-
-# In[10]:
-
-
-conn = boto.connect_s3(
-    aws_access_key_id = st.secrets["aws_access_key"],
-    aws_secret_access_key = st.secrets["aws_secret_access_key"]
-)
-
-# In[12]:
-
-
-from io import StringIO
+    user_input = st.text_input("Enter street address here", 'FIGUEROA ST')
 
 
 # In[61]:
@@ -86,7 +72,7 @@ class project_data:
         self.address = str(user_input).capitalize()
         self.day = day_selected
         self.hour = hour_selected
-    
+
     def get_data_cloud(self):
 
         client = boto3.client('s3', aws_access_key_id=st.secrets["aws_access_key"], aws_secret_access_key=st.secrets["aws_secret_access_key"])
@@ -107,8 +93,6 @@ class project_data:
 
         return df_traffic, df_crash
 
-
-    # function will get data for user input for appearing in pop-up text
     def get_risk(self, x):
         if x > 0 and x <= 10:
             return 'low'
@@ -116,7 +100,7 @@ class project_data:
             return 'medium'
         else:
             return 'high'
-
+            
     def get_data(self):
         _, crash = self.get_dataframe()
         predicted_label = self.find_cluster()
@@ -132,11 +116,9 @@ class project_data:
 
     # Get API
     def get_api(self):
-        geocode_api = st.secrets["geocode_api_key"]
-
-        # geocode_api = ''
-        # with open(r'../data/geocode_api_keys.txt', 'r') as f:
-        #     geocode_api += str(f.read())
+        geocode_api = ''
+        with open(r'../data/geocode_api_keys.txt', 'r') as f:
+            geocode_api += str(f.read())
         
         return geocode_api
 
@@ -156,7 +138,7 @@ class project_data:
         return [latitude, longitude]
     
     def open_model(self):
-        return pickle.load(open("results/kmeans.pkl", "rb"))
+        return pickle.load(open("../results/kmeans.pkl", "rb"))
     
 
     # Finding the closest cluster and its relevant details
@@ -175,7 +157,6 @@ class project_data:
         accident_volume = pd.DataFrame(data_.groupby(['day_week', 'hour'])['mean_accidentVolume'].mean().unstack(level=-1).fillna(0))
         return traffic_volume.loc[(self.day, self.hour)], accident_volume.loc[(self.day, self.hour)]
     
-
     # Use this for plotting stuff for all points on the maps
     # Do standard scaling for the data points, maybe save the weights for later
     def plot_maps(self):
@@ -231,10 +212,6 @@ lst_elements = sorted(list(map_df[color].unique()))
 copy["color"] = copy[color].apply(lambda x: 
                 lst_colors[lst_elements.index(x)])
 
-scaler = preprocessing.MinMaxScaler()
-copy["size"] = scaler.fit_transform(
-               copy[size].values.reshape(-1,1)).reshape(-1)
-
 
 # In[68]:
 
@@ -242,7 +219,6 @@ copy["size"] = scaler.fit_transform(
 map_ = folium.Map(location=[location_lat, location_long], 
                       tiles='cartodbpositron', zoom_start=20)
 folium.Marker(location=[location_lat, location_long],popup=["address","traffic_vol", "acc_count"],tooltip='Click here to see Popup').add_to(map_)
-
 
 
 # In[71]:
@@ -262,6 +238,8 @@ for risk in required_df["risk_level"]:
         size.append(30)
 
 required_df["size"] = size
+
+
 # In[77]:
 
 
@@ -274,13 +252,30 @@ required_df.apply(lambda row: folium.CircleMarker(
 # In[10]:
 
 # In[82]:
+with row1_3:
 
-
-with row1_2:
-    
     st.subheader(
-        f"""**Traffic Volume & Accident Count for {user_input} and {day_selected}**"""
+        f"""**Risk Level for {user_input} at {hour_selected}:00 on {day_selected}**"""
     )
+    folium_static(map_)
+
+row2_1, row2_2 = st.columns((1, 0.75))
+row3_1, row3_2 = st.columns((1,0.75))
+
+with row2_1:
+
+    st.subheader(
+        f"""**Traffic Volume on {day_selected} for {user_input}**"""
+    )
+with row2_2:
+
+    st.subheader(
+        f"""**Accident Count on {day_selected} for {user_input}**"""
+    )
+
+
+
+with row3_1:
 
     chart_data = copy[(copy['address']==address)]
     chart_data= chart_data[(chart_data['day_week']==day_selected)][['hour', 'traffic_vol']]
@@ -288,23 +283,13 @@ with row1_2:
     chart_data.reset_index(inplace=True)
 
     st.bar_chart(chart_data, width=500, height=500, use_container_width=True)
-
-
-# In[80]:
-
-
-row2_1, row2_2 = st.columns((1, 1))
-with row2_1:
-    st.write(
-        f"""**{user_input} for {hour_selected}:00 and {day_selected}.**"""
-    )
-    folium_static(map_)
+    
 
 
 # In[81]:
 
 
-with row2_2:
+with row3_2:
     chart_data_acc = copy[(copy['address']==address)]
     chart_data_acc = chart_data_acc[(chart_data_acc['day_week']==day_selected)][['hour', 'acc_count']]
     chart_data_acc = pd.DataFrame(chart_data_acc.groupby(by=['hour'])['acc_count'].sum(numeric_only=False))
