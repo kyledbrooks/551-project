@@ -136,9 +136,11 @@ class project_data:
 
     # Get API
     def get_api(self):
-        geocode_api = ''
-        with open(r'../data/geocode_api_keys.txt', 'r') as f:
-            geocode_api += str(f.read())
+        geocode_api = st.secrets["geocode_api_key"]
+        
+        # geocode_api = ''
+        # with open(r'../data/geocode_api_keys.txt', 'r') as f:
+        #     geocode_api += str(f.read())
         
         return geocode_api
 
