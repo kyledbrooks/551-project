@@ -92,7 +92,7 @@ from io import StringIO
 # In[13]:
 
 
-client = boto3.client('s3', aws_access_key_id=keys[0], aws_secret_access_key=keys[1])
+client = boto3.client('s3', aws_access_key_id=st.secrets["aws_access_key"], aws_secret_access_key=st.secrets["aws_secret_access_key"])
 bucket_name = 'sofians3'
 object_key = 'final_data.csv'
 csv_obj = client.get_object(Bucket=bucket_name, Key=object_key)
