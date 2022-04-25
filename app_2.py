@@ -241,6 +241,8 @@ copy["size"] = scaler.fit_transform(
 
 map_ = folium.Map(location=[location_lat, location_long], 
                       tiles='cartodbpositron', zoom_start=20)
+folium.Marker(location=[location_lat, location_long],popup=["address","traffic_vol", "acc_count"],tooltip='Click here to see Popup').add_to(map_)
+
 
 
 # In[71]:
@@ -248,7 +250,18 @@ map_ = folium.Map(location=[location_lat, location_long],
 
 required_df = copy[(copy['day_week']==day_selected) & (copy['hour']==hour_selected)]
 
+size = []
 
+for risk in required_df["risk_level"]:
+
+    if risk == "low":
+        size.append(10)
+    elif risk == "medium":
+        size.append(20)
+    elif risk == "high":
+        size.append(30)
+
+required_df["size"] = size
 # In[77]:
 
 
