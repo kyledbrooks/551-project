@@ -51,7 +51,7 @@ popup = ["address","traffic_vol", "acc_count"]
 
 address = user_input + ', Los Angeles'
 
-map_df = pd.read_csv('map_df.csv')
+map_df = pd.read_csv('data/map_df.csv')
 
 location_lat = list(map_df.loc[(map_df['address'] == address) & (map_df['day_week']==day_selected) & (map_df['hour']==hour_selected), 'latitude'])[0]
 location_long = list(map_df.loc[(map_df['address'] == address) & (map_df['day_week']==day_selected) & (map_df['hour']==hour_selected), 'longitude'])[0]
