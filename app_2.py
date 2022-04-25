@@ -16,6 +16,7 @@ import warnings
 from streamlit_folium import folium_static
 from sklearn import preprocessing
 import pickle 
+from io import StringIO
 from sklearn.preprocessing import StandardScaler
 warnings.filterwarnings('ignore')
 
@@ -30,8 +31,6 @@ import boto3
 import pandas as pd
 import sys
 from opencage.geocoder import OpenCageGeocode
-from sklearn.metrics.pairwise import haversine_distances
-from math import radians
 
 
 # In[5]:
@@ -72,32 +71,10 @@ conn = boto.connect_s3(
     aws_secret_access_key = st.secrets["aws_secret_access_key"]
 )
 
-
-# In[11]:
-
-
-for bucket in conn.get_all_buckets():
-    print("{name}\t{created}".format(
-        name = bucket.name,
-        created = bucket.creation_date,
-    ))
-
-
 # In[12]:
 
 
 from io import StringIO
-
-
-# In[13]:
-
-
-# client = boto3.client('s3', aws_access_key_id=st.secrets["aws_access_key"], aws_secret_access_key=st.secrets["aws_secret_access_key"])
-# bucket_name = 'sofians3'
-# object_key = 'final_data.csv'
-# csv_obj = client.get_object(Bucket=bucket_name, Key=object_key)
-# body = csv_obj['Body']
-# csv_string = body.read().decode('utf-8')
 
 
 # In[61]:
@@ -109,25 +86,29 @@ class project_data:
         self.address = str(user_input).capitalize()
         self.day = day_selected
         self.hour = hour_selected
-        
-    def get_dataframe(self): 
-        # df_traffic = pd.read_csv(r'data/dataProcessing_files/data_final.csv')  
+    
+    def get_data_cloud(self):
 
         client = boto3.client('s3', aws_access_key_id=st.secrets["aws_access_key"], aws_secret_access_key=st.secrets["aws_secret_access_key"])
-        bucket_name = 'sofians3'
-        object_key = 'final_data.csv'
-        csv_obj = client.get_object(Bucket=bucket_name, Key=object_key)
-        body = csv_obj['Body']
-        csv_string = body.read().decode('utf-8')
+        csv_obj_traffic = client.get_object(Bucket='sofians3', Key='data_final.csv')
+        csv_obj_crash = client.get_object(Bucket='sofians3', Key='kmeans_k=25.csv')
+        body_traffic = csv_obj_traffic['Body']
+        body_crash = csv_obj_crash['Body']
+        csv_string_traffic = body_traffic.read().decode('utf-8')
+        csv_string_crash = body_crash.read().decode('utf-8')
+        return csv_string_traffic, csv_string_crash
+
         
-        df_traffic = pd.read_csv(StringIO(csv_string))
+    def get_dataframe(self): 
 
+        csv_file_traffic, csv_file_crash = self.get_data_cloud()
+        df_traffic = pd.read_csv(StringIO(csv_file_traffic))
+        df_crash = pd.read_csv(StringIO(csv_file_crash))
 
-        df_crash = pd.read_csv(r'data/dataProcessing_files/kmeans_k=25.csv')
         return df_traffic, df_crash
 
 
-        # function will get data for user input for appearing in pop-up text
+    # function will get data for user input for appearing in pop-up text
     def get_risk(self, x):
         if x > 0 and x <= 10:
             return 'low'
@@ -135,6 +116,7 @@ class project_data:
             return 'medium'
         else:
             return 'high'
+
     def get_data(self):
         _, crash = self.get_dataframe()
         predicted_label = self.find_cluster()
@@ -316,4 +298,3 @@ with row2_2:
     chart_data_acc.reset_index(inplace=True)
     
     st.bar_chart(chart_data_acc, width=500, height=500, use_container_width=True)
-
