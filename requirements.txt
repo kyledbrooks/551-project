@@ -7,4 +7,3 @@ folium
 geopy
 streamlit_folium
 sklearn
-pickle
