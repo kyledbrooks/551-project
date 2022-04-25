@@ -92,12 +92,12 @@ from io import StringIO
 # In[13]:
 
 
-client = boto3.client('s3', aws_access_key_id=st.secrets["aws_access_key"], aws_secret_access_key=st.secrets["aws_secret_access_key"])
-bucket_name = 'sofians3'
-object_key = 'final_data.csv'
-csv_obj = client.get_object(Bucket=bucket_name, Key=object_key)
-body = csv_obj['Body']
-csv_string = body.read().decode('utf-8')
+# client = boto3.client('s3', aws_access_key_id=st.secrets["aws_access_key"], aws_secret_access_key=st.secrets["aws_secret_access_key"])
+# bucket_name = 'sofians3'
+# object_key = 'final_data.csv'
+# csv_obj = client.get_object(Bucket=bucket_name, Key=object_key)
+# body = csv_obj['Body']
+# csv_string = body.read().decode('utf-8')
 
 
 # In[61]:
@@ -109,10 +109,24 @@ class project_data:
         self.address = str(user_input).capitalize()
         self.day = day_selected
         self.hour = hour_selected
+        
     def get_dataframe(self): 
-        df_traffic = pd.read_csv(r'data/dataProcessing_files/data_final.csv')       
+        # df_traffic = pd.read_csv(r'data/dataProcessing_files/data_final.csv')  
+
+        client = boto3.client('s3', aws_access_key_id=st.secrets["aws_access_key"], aws_secret_access_key=st.secrets["aws_secret_access_key"])
+        bucket_name = 'sofians3'
+        object_key = 'final_data.csv'
+        csv_obj = client.get_object(Bucket=bucket_name, Key=object_key)
+        body = csv_obj['Body']
+        csv_string = body.read().decode('utf-8')
+        
+        df_traffic = pd.read_csv(StringIO(csv_string))
+
+
         df_crash = pd.read_csv(r'data/dataProcessing_files/kmeans_k=25.csv')
         return df_traffic, df_crash
+
+
         # function will get data for user input for appearing in pop-up text
     def get_risk(self, x):
         if x > 0 and x <= 10:
@@ -179,6 +193,7 @@ class project_data:
         accident_volume = pd.DataFrame(data_.groupby(['day_week', 'hour'])['mean_accidentVolume'].mean().unstack(level=-1).fillna(0))
         return traffic_volume.loc[(self.day, self.hour)], accident_volume.loc[(self.day, self.hour)]
     
+
     # Use this for plotting stuff for all points on the maps
     # Do standard scaling for the data points, maybe save the weights for later
     def plot_maps(self):
