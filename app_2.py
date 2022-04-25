@@ -63,27 +63,13 @@ with row1_1:
     user_input = st.text_input("Enter street address here", 'Figueroa ST')
 
 
-# In[8]:
-
-
-keys = []
-
-
-# In[9]:
-
-
-with open('../data/api_keys.txt', 'r') as f:
-    data = f.readlines()
-    for i in data:
-        keys.append(str(i).replace('\n', ''))
-
 
 # In[10]:
 
 
 conn = boto.connect_s3(
-    aws_access_key_id = keys[0],
-    aws_secret_access_key = keys[1]
+    aws_access_key_id = st.secrets["aws_access_key"],
+    aws_secret_access_key = st.secrets["aws_secret_access_key"]
 )
 
 
