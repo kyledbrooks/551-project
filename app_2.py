@@ -158,7 +158,7 @@ class project_data:
         return [latitude, longitude]
     
     def open_model(self):
-        return pickle.load(open("../results/kmeans.pkl", "rb"))
+        return pickle.load(open("results/kmeans.pkl", "rb"))
     
 
     # Finding the closest cluster and its relevant details
