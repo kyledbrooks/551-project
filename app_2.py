@@ -63,6 +63,14 @@ with row1_2:
     user_input = st.text_input("Enter street address here", 'FIGUEROA ST')
 
 
+    client = boto3.client('s3', aws_access_key_id=st.secrets["aws_access_key"], aws_secret_access_key=st.secrets["aws_secret_access_key"])
+    csv_obj_traffic = client.get_object(Bucket='sofians3', Key='data_final.csv')
+    csv_obj_crash = client.get_object(Bucket='sofians3', Key='kmeans_k=25.csv')
+    # body_traffic = csv_obj_traffic['Body']
+    # body_crash = csv_obj_crash['Body']
+    # csv_string_traffic = body_traffic.read().decode('utf-8')
+    # csv_string_crash = body_crash.read().decode('utf-8')
+    # return csv_string_traffic, csv_string_crash
 # In[61]:
 
 
@@ -75,9 +83,6 @@ class project_data:
 
     def get_data_cloud(self):
 
-        client = boto3.client('s3', aws_access_key_id=st.secrets["aws_access_key"], aws_secret_access_key=st.secrets["aws_secret_access_key"])
-        csv_obj_traffic = client.get_object(Bucket='sofians3', Key='data_final.csv')
-        csv_obj_crash = client.get_object(Bucket='sofians3', Key='kmeans_k=25.csv')
         body_traffic = csv_obj_traffic['Body']
         body_crash = csv_obj_crash['Body']
         csv_string_traffic = body_traffic.read().decode('utf-8')
