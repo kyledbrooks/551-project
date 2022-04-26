@@ -115,18 +115,18 @@ class project_data:
         return dict_traffic[predicted_label], dict_accident[predicted_label], risk
 
     # Get API
-    def get_api(self):
-        geocode_api = ''
-        with open(r'../data/geocode_api_keys.txt', 'r') as f:
-            geocode_api += str(f.read())
+    # def get_api(self):
+    #     geocode_api = ''
+    #     with open(r'../data/geocode_api_keys.txt', 'r') as f:
+    #         geocode_api += str(f.read())
         
-        return geocode_api
+    #     return geocode_api
 
     # Geocoding...
     def coordinates(self):
         if ', Los Angeles' not in self.address:
             full_address = self.address + ', Los Angeles'
-        key = self.get_api()
+        key = st.secrets["geocode_api_key"]
         geocoder = OpenCageGeocode(key)
         result = geocoder.geocode(full_address, no_annotations="1")
         if result and len(result):
@@ -138,7 +138,7 @@ class project_data:
         return [latitude, longitude]
     
     def open_model(self):
-        return pickle.load(open("../results/kmeans.pkl", "rb"))
+        return pickle.load(open("results/kmeans.pkl", "rb"))
     
 
     # Finding the closest cluster and its relevant details
